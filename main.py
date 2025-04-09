@@ -108,83 +108,55 @@ def upload_file(file):
             
     if program:
     
-        if is_last_hour: # then upload the files in parts
 
-            logging.info(f"Preparing to upload {program['Show']}")
+        logging.info(f"Preparing to upload {program['Show']}")
 
-            add_file_to_queue(file)
-            
-            # load all files on the queue into local memory and save them into temp file
-            with open(BUFFER_FILE, 'r') as f:
-                data = json.load(f)
-                
-            audio = list()
-            for entry in data["queue"]:
-                samples, sample_rate = sf.read(entry)
-                audio.append(samples)
+        # upload temp file to Mixcloud
+        archive_start_date = archive_date - timedelta(hours=1, minutes=0)
+        description = (f"{program['Start Day']} from {archive_start_date.strftime('%A, %B %d, %Y %I:%M %p')} to {archive_date.strftime('%A, %B %d, %Y %I:%M %p')}. "
+                       f"\n"
+                       f"{program['Promo Text']}")
+        description = description.replace(u'\xa0', u' ')
+        description = description.replace('\ufffd', '')
 
-            logging.info(f"All the archive audio file arrays: {[arr.shape for arr in audio]}")
-            
+        tags = program['Description'].split(",")
 
-            audio = np.concatenate(audio)
-            audio_duration_minutes = (audio.shape[0]/sample_rate)/60
+        data = {
+            'name': f"{program['Show']} {program['Start Day']}, {archive_date.month}/{archive_date.day}/{archive_date.year}", 
+            'description': description, 
+            'publish_date': '',
+            'user': 'WAIF883'
+        }
 
-            logging.info("Writing the following files into queue.mp3")
-            logging.info(data["queue"])
-            logging.info(f"Audio has shape: {audio.shape}")
-            logging.info(f"Audio has duration {audio_duration_minutes} minutes")
-            
-            sf.write("queue.mp3", audio, sample_rate)
-            logging.info("Finished writing to queue.mp3")
-
-            # upload temp file to Mixcloud
-            description = f"This is a test.\n {program['Start Day']} at {program['Start Time']}. {program['Promo Text']}"
-            description = description.replace(u'\xa0', u' ')
-            description = description.replace('\ufffd', '')
-
-            tags = program['Description'].split(",")
-
-            data = {
-                'name': f"{program['Show']} {program['Start Day']}, {archive_date.month}/{archive_date.day}/{archive_date.year}", 
-                'description': description, 
-                'publish_date': '',
-                'user': 'WAIF883'
+        # add tags
+        for n, tag in enumerate(tags):
+            data = data | {
+                f'tags-{n}-tag': tag
             }
+        data |= {
+            f'tags-{n+1}-tag': f"WAIF: {program['Show']}"
+        }
 
-            # add tags
-            for n, tag in enumerate(tags):
-                data = data | {
-                    f'tags-{n}-tag': tag
-                }
-            data |= {
-                f'tags-{n+1}-tag': f"WAIF: {program['Show']}"
-            }
-
-            files = {
-                'mp3': ("queue.mp3", open("queue.mp3", 'rb'), 'audio/mpeg'),
-            }
-            
-            url = f"https://api.mixcloud.com/upload/?access_token={secrets['ACCESS_TOKEN']}"
-
-            logging.info(f"Posting to {url} with content:")
-            logging.info(data)
-            logging.info(files)
-
-            r = requests.post(url, files=files, data=data)
-            if r.status_code == 200:
-                logging.info("Successful upload.")
-                logging.info(r.json())
-                logging.info(r.text)
-            else:
-                logging.error(f"Unsuccessful upload. Response code {r.status_code}.")
-                logging.error(r.json())
-                logging.error(r.text)
-            
-            clear_queue()
+        files = {
+            'mp3': (file, open(file, 'rb'), 'audio/mpeg'),
+        }
         
-        else: # put that file in the queue
-            logging.info(f"Adding file to queue for program {pprint.pformat(program)}")
-            add_file_to_queue(file)
+        url = f"https://api.mixcloud.com/upload/?access_token={secrets['ACCESS_TOKEN']}"
+
+        logging.info(f"Posting to {url} with content:")
+        logging.info(data)
+        logging.info(files)
+
+        r = requests.post(url, files=files, data=data)
+        if r.status_code == 200:
+            logging.info("Successful upload.")
+            logging.info(r.json())
+            logging.info(r.text)
+        else:
+            logging.error(f"Unsuccessful upload. Response code {r.status_code}.")
+            logging.error(r.json())
+            logging.error(r.text)
+    
             
     else:
         logging.warning(f"Ooops, no show found for this file \"{file}\".")
