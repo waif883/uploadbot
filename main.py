@@ -122,7 +122,7 @@ def upload_file(file):
         tags = program['Description'].split(",")
 
         data = {
-            'name': f"{program['Show']} {program['Start Day']}, {archive_date.month}/{archive_date.day}/{archive_date.year}", 
+            'name': f"{program['Show']} {archive_start_date.strftime('%A, %B %d, %Y %I:%M %p')} , {archive_date.month}/{archive_date.day}/{archive_date.year}", 
             'description': description, 
             'publish_date': '',
             'user': 'WAIF883'
