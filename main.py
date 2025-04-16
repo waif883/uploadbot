@@ -24,7 +24,7 @@ WEEKDAYS = {
 }
 
 DEBUG = False
-DAYLIGHT_SAVINGS = True
+DAYLIGHT_SAVINGS = False
 
 BUFFER_FILE = "threadbuffer.json"
 PROGRAM_CSV_FILE = "Shows.csv"
@@ -33,7 +33,8 @@ if DEBUG:
     ARCHIVE_DIRECTORY = "example"
     CHECK_FILE_DURATION_SECONDS = 1
 else:
-    CHECK_FILE_DURATION_SECONDS = 5*60
+    # CHECK_FILE_DURATION_SECONDS = 5*60
+    CHECK_FILE_DURATION_SECONDS = 2
     ARCHIVE_DIRECTORY = os.path.join("W:", os.sep, "OneDrive - The Real StepChild Radio Of Cincinnati One", "New Recording")
 
 
@@ -93,7 +94,6 @@ def upload_file(file):
     # find program 
     program = None
     reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    is_last_hour = False
     program = None
     for row in reader:
         program_start_time = int(row['Start Time (24hr)'].split(':')[0])
@@ -108,7 +108,6 @@ def upload_file(file):
             
     if program:
     
-
         logging.info(f"Preparing to upload {program['Show']}")
 
         # upload temp file to Mixcloud
@@ -122,7 +121,7 @@ def upload_file(file):
         tags = program['Description'].split(",")
 
         data = {
-            'name': f"{program['Show']} {archive_start_date.strftime('%A, %B %d, %Y %I:%M %p')} , {archive_date.month}/{archive_date.day}/{archive_date.year}", 
+            'name': f"{program['Show']} {archive_start_date.month}/{archive_start_date.day}/{archive_start_date.year} {archive_start_date.hour}-{archive_date.hour}", 
             'description': description, 
             'publish_date': '',
             'user': 'WAIF883'
