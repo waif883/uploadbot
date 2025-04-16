@@ -3,6 +3,8 @@ import re
 import datetime
 import logging
 import requests
+import time
+import datetime 
 
 from utils import WEEKDAYS
 from RadioProgram import RadioProgram
@@ -16,10 +18,9 @@ def parse_archive_filename(file):
                             day=int(parts[1]),
                             hour=int(parts[5])
                         )
-    # if DAYLIGHT_SAVINGS:
-    #     archive_date = archive_date + timedelta(hours=1, minutes=0)
-    # archive_day = WEEKDAYS[archive_datetime.weekday()]
-    # archive_hour = archive_date.hour
+    # if time.localtime().tm_isdst > 0:
+    #     archive_date = archive_date + datetime.timedelta(hours=1, minutes=0)
+
     return archive_datetime
 
 def upload_to_mixcloud(program: RadioProgram, 
