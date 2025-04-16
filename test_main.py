@@ -3,7 +3,7 @@ import shutil
 import threading
 import time
 
-from newmain import main
+from main import main
 
 if __name__ == "__main__":
     # clean up
