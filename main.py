@@ -15,8 +15,6 @@ from RadioProgram import RadioProgram
 
 DEBUG = True
 
-PROGRAM_CSV_FILE = "Shows.csv"
-
 if DEBUG:
     ARCHIVE_DIRECTORY = "example"
     CHECK_FILE_DURATION_SECONDS = 1
@@ -26,26 +24,6 @@ else:
     ARCHIVE_DIRECTORY = os.path.join("W:", os.sep, "OneDrive - The Real StepChild Radio Of Cincinnati One", "New Recording")
     CHECK_FILE_DURATION_SECONDS = 5*60
     UPLOAD_WAIT_HOURS = 1
-
-def match_archive_to_program(archive_datetime: datetime.datetime, programs: list):
-    # find program 
-    program = None
-    reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    program = None
-    archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
-    archive_hour = archive_datetime.hour
-    selected_program = None
-    for program in programs:
-
-        day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
-        time_match = archive_hour >= program.start_hour and archive_hour < program.end_hour
-        
-        if day_match and time_match:
-            selected_program = program
-            if archive_hour == (program.end_hour):
-                is_last_hour = True
-            break
-    return selected_program
 
 def main():
     
@@ -60,18 +38,15 @@ def main():
                     ])
     logging.info(f"W.A.I.F. MixCloud Upload Server booted.")
     
+    
     # load secrets from memory
     with open("secrets.json", 'r') as f:
         secrets = json.load(f)
-    
-    # load programs
-    programs = list()
-    reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    for row in reader:
-        programs.append(
-            RadioProgram(row)
-        )
         
+    # load programs from airtable
+    programs = waif.get_programs(secrets)
+        
+    # read files on disk
     last_archive_directory_content = glob.glob(os.path.join(ARCHIVE_DIRECTORY, "*"))
     audio_file_upload_queue = list()
     
@@ -94,8 +69,7 @@ def main():
             file = item["file"]
             found_at_time = item["time"]
             archive_datetime = waif.parse_archive_filename(file)
-            filesize_mb = utils.byte2megabyte(os.path.getsize(file))
-            program = match_archive_to_program(archive_datetime, programs)
+            program = waif.match_archive_to_program(archive_datetime, secrets)
             
             if program:
                 hours_waited = utils.seconds2hours((datetime.datetime.now() - found_at_time).total_seconds())
