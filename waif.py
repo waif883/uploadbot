@@ -61,7 +61,7 @@ def upload_to_mixcloud(program: RadioProgram,
         'mp3': (file, open(file, 'rb'), 'audio/mpeg'),
     }
     
-    url = f"https://api.mixcloud.com/upload/?access_token={secrets['ACCESS_TOKEN']}"
+    url = f"https://api.mixcloud.com/upload/?access_token={secrets['MIXCLOUD']['ACCESS_TOKEN']}"
 
     logging.info(f"Posting to {url} with content:")
     logging.info(data)

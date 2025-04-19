@@ -15,7 +15,6 @@ from RadioProgram import RadioProgram
 
 DEBUG = True
 
-BUFFER_FILE = "threadbuffer.json"
 PROGRAM_CSV_FILE = "Shows.csv"
 
 if DEBUG:
@@ -27,10 +26,6 @@ else:
     ARCHIVE_DIRECTORY = os.path.join("W:", os.sep, "OneDrive - The Real StepChild Radio Of Cincinnati One", "New Recording")
     CHECK_FILE_DURATION_SECONDS = 5*60
     UPLOAD_WAIT_HOURS = 1
-    
-    
-ARCHIVE_DIRECTORY = "example"
-PROGRAM_CSV_FILE = "Shows.csv"
 
 def match_archive_to_program(archive_datetime: datetime.datetime, programs: list):
     # find program 
