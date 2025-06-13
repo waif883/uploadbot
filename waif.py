@@ -39,10 +39,10 @@ def upload_to_mixcloud(program: RadioProgram,
 
     tags = program.description.split(",")
 
-    start_p = "AM" if archive_datetime.hour < 12 else "PM"
-    end_p = "AM" if archive_end_datetime.hour < 12 else "PM"
+    start_12hr = archive_datetime.strftime("%I%p")
+    end_12hr = archive_end_datetime.strftime("%I%p")
     data = {
-        'name': f"{program.name} {archive_datetime.month}/{archive_datetime.day}/{archive_datetime.year} {archive_datetime.hour}{start_p}-{archive_end_datetime.hour}{end_p}", 
+        'name': f"{program.name} {archive_datetime.month}/{archive_datetime.day}/{archive_datetime.year} {start_12hr}-{end_12hr}", 
         'description': description, 
         'publish_date': '',
         'user': 'WAIF883'
