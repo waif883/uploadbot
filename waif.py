@@ -3,10 +3,13 @@ import re
 import datetime
 import logging
 import requests
+import csv
 import time
 import datetime 
 
-from utils import WEEKDAYS
+import airtable
+
+import utils
 from RadioProgram import RadioProgram
 
 def parse_archive_filename(file):
@@ -22,6 +25,52 @@ def parse_archive_filename(file):
     #     archive_date = archive_date + datetime.timedelta(hours=1, minutes=0)
 
     return archive_datetime
+
+def get_programs(secrets):
+    # load programs
+    # programs = list()
+    # reader = csv.DictReader(open(PROGRAM_CSV_FILE))
+    # for row in reader:
+    #     programs.append(
+    #         RadioProgram(row)
+    #     )
+    programs = list()
+    at = airtable.Airtable(secrets["AIRTABLE"]["BASE_ID"], secrets["AIRTABLE"]["ACCESS_TOKEN"])
+    r = at.get("Programs")
+    r = r["records"]
+    for item in r:
+        item = item["fields"]
+        program = RadioProgram(name=item["Show"], 
+                            start_day_str=item["Start Day"],
+                            start_hour=item["Start Time (24hr)"],
+                            end_day_str=item["End Day"],
+                            end_hour=item["End Time (24hr)"],
+                            description=item["Description"],
+                            promo=item["Promo Text"])
+        programs.append(program)
+    return programs
+
+def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict):
+    
+    programs = get_programs(secrets)
+    
+    # find program 
+    program = None
+    program = None
+    archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
+    archive_hour = archive_datetime.hour
+    selected_program = None
+    for program in programs:
+
+        day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
+        time_match = archive_hour >= program.start_hour and archive_hour < program.end_hour
+        
+        if day_match and time_match:
+            selected_program = program
+            if archive_hour == (program.end_hour):
+                is_last_hour = True
+            break
+    return selected_program
 
 def upload_to_mixcloud(program: RadioProgram, 
                        file: str, 
@@ -61,7 +110,7 @@ def upload_to_mixcloud(program: RadioProgram,
         'mp3': (file, open(file, 'rb'), 'audio/mpeg'),
     }
     
-    url = f"https://api.mixcloud.com/upload/?access_token={secrets['ACCESS_TOKEN']}"
+    url = f"https://api.mixcloud.com/upload/?access_token={secrets['MIXCLOUD']['ACCESS_TOKEN']}"
 
     logging.info(f"Posting to {url} with content:")
     logging.info(data)

@@ -14,8 +14,8 @@ import waif
 from RadioProgram import RadioProgram
 
 DEBUG = False
-
 PROGRAM_CSV_FILE = "Shows.csv"
+
 
 if DEBUG:
     ARCHIVE_DIRECTORY = "example"
@@ -61,18 +61,15 @@ def main():
                     ])
     logging.info(f"W.A.I.F. MixCloud Upload Server booted.")
     
+    
     # load secrets from memory
     with open("secrets.json", 'r') as f:
         secrets = json.load(f)
-    
-    # load programs
-    programs = list()
-    reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    for row in reader:
-        programs.append(
-            RadioProgram(row)
-        )
         
+    # load programs from airtable
+    programs = waif.get_programs(secrets)
+        
+    # read files on disk
     last_archive_directory_content = glob.glob(os.path.join(ARCHIVE_DIRECTORY, "*"))
     audio_file_upload_queue = list()
     
@@ -95,8 +92,7 @@ def main():
             file = item["file"]
             found_at_time = item["time"]
             archive_datetime = waif.parse_archive_filename(file)
-            filesize_mb = utils.byte2megabyte(os.path.getsize(file))
-            program = match_archive_to_program(archive_datetime, programs)
+            program = waif.match_archive_to_program(archive_datetime, secrets)
             
             if program:
                 hours_waited = utils.seconds2hours((datetime.datetime.now() - found_at_time).total_seconds())

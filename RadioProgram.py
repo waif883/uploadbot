@@ -14,21 +14,25 @@ class RadioProgram:
     description: str
     num_hours: int
     promo: str
-    def __init__(self, row):
+    def __init__(self, 
+                 name: str, 
+                 start_day_str: str,
+                 start_hour: int,
+                 end_day_str: str,
+                 end_hour: int,
+                 description: str,
+                 promo: str):
         """Constructor from CSV Row
-
-        Args:
-            row (_type_): row in the Shows.csv
         """
-        self.name = row['Show']
-        self.start_day_str = row['Start Day'].strip()
+        self.name = name
+        self.start_day_str = start_day_str
         self.start_day_int = self._get_day_int(self.start_day_str)
-        self.start_hour = int(row['Start Time (24hr)'].split(':')[0])
-        self.end_day_str = row['End Day'].strip()
+        self.start_hour = int(start_hour.split(':')[0])
+        self.end_day_str = end_day_str.strip()
         self.end_day_int = self._get_day_int(self.end_day_str)
-        self.end_hour = int(row['End Time (24hr)'].split(':')[0])
-        self.promo = row['Promo Text']
-        self.description = row['Description']
+        self.end_hour = int(end_hour.split(':')[0])
+        self.promo = promo
+        self.description = description
         self._get_num_hours()
         
     def _get_day_int(self, day: str):
