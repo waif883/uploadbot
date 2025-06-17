@@ -38,16 +38,17 @@ def get_programs(secrets):
     at = airtable.Airtable(secrets["AIRTABLE"]["BASE_ID"], secrets["AIRTABLE"]["ACCESS_TOKEN"])
     r = at.get("Programs")
     r = r["records"]
-    for item in r:
+    for n, item in enumerate(r):
         item = item["fields"]
-        program = RadioProgram(name=item["Show"], 
-                            start_day_str=item["Start Day"],
-                            start_hour=item["Start Time (24hr)"],
-                            end_day_str=item["End Day"],
-                            end_hour=item["End Time (24hr)"],
-                            description=item["Description"],
-                            promo=item["Promo Text"])
-        programs.append(program)
+        if all(key in item for key in ["Show", "Start Day", "Start Time (24hr)", "End Day", "End Time (24hr)", "Description", "Promo Text"]):
+            program = RadioProgram(name=item["Show"], 
+                                start_day_str=item["Start Day"],
+                                start_hour=item["Start Time (24hr)"],
+                                end_day_str=item["End Day"],
+                                end_hour=item["End Time (24hr)"],
+                                description=item["Description"],
+                                promo=item["Promo Text"])
+            programs.append(program)
     return programs
 
 def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict):
@@ -55,7 +56,6 @@ def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict)
     programs = get_programs(secrets)
     
     # find program 
-    program = None
     program = None
     archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
     archive_hour = archive_datetime.hour
@@ -80,7 +80,7 @@ def upload_to_mixcloud(program: RadioProgram,
 
     # upload temp file to Mixcloud
     archive_end_datetime = archive_datetime + datetime.timedelta(hours=1, minutes=0)
-    description = (f"{program.start_day_str} from {archive_datetime.strftime('%A, %B %d, %Y %I:%M %p')} to {archive_end_datetime.strftime('%A, %B %d, %Y %I:%M %p')}. "
+    description = (f"{archive_datetime.strftime('%A, %B %d, %Y %I:%M %p')} to {archive_end_datetime.strftime('%A, %B %d, %Y %I:%M %p')}. "
                     f"\n"
                     f"{program.promo}")
     description = description.replace(u'\xa0', u' ')

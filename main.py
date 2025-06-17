@@ -27,26 +27,6 @@ else:
     CHECK_FILE_DURATION_SECONDS = 5*60
     UPLOAD_WAIT_HOURS = 1
 
-def match_archive_to_program(archive_datetime: datetime.datetime, programs: list):
-    # find program 
-    program = None
-    reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    program = None
-    archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
-    archive_hour = archive_datetime.hour
-    selected_program = None
-    for program in programs:
-
-        day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
-        time_match = archive_hour >= program.start_hour and archive_hour < program.end_hour
-        
-        if day_match and time_match:
-            selected_program = program
-            if archive_hour == (program.end_hour):
-                is_last_hour = True
-            break
-    return selected_program
-
 def main():
     
     # set up logging
