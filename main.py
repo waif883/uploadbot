@@ -78,7 +78,10 @@ def main():
                 hours_waited = utils.seconds2hours((datetime.datetime.now() - found_at_time).total_seconds())
                 if (hours_waited > UPLOAD_WAIT_HOURS):
                     logging.info(f"{hours_waited} hours have elapsed, ready to upload {file}.")
-                    waif.upload_to_mixcloud(program, file, archive_datetime, secrets)
+                    try:
+                        waif.upload_to_mixcloud(program, file, archive_datetime, secrets)
+                    except:
+                        logging.error(f"Could not upload {file} to mixcloud.")
                     audio_file_upload_queue[i] = None
                 else:
                     logging.info(f"{hours_waited} hours have elapsed, not ready to uplad {file}.")
