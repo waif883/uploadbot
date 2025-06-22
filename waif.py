@@ -62,8 +62,12 @@ def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict)
     selected_program = None
     for program in programs:
 
+        end_hour = program.end_hour
+        if end_hour < program.start_hour:
+            end_hour += 24
+
         day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
-        time_match = archive_hour >= program.start_hour and archive_hour < program.end_hour
+        time_match = archive_hour >= program.start_hour and archive_hour < end_hour
         
         if day_match and time_match:
             selected_program = program
