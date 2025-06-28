@@ -36,6 +36,7 @@ def get_programs(secrets):
     #     )
     programs = list()
     at = airtable.Airtable(secrets["AIRTABLE"]["BASE_ID"], secrets["AIRTABLE"]["ACCESS_TOKEN"])
+    
     r = at.get("Programs")
     r = r["records"]
     for n, item in enumerate(r):
@@ -53,28 +54,32 @@ def get_programs(secrets):
 
 def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict):
     
-    programs = get_programs(secrets)
+    try:
+        programs = get_programs(secrets)
     
-    # find program 
-    program = None
-    archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
-    archive_hour = archive_datetime.hour
-    selected_program = None
-    for program in programs:
+        # find program 
+        program = None
+        archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
+        archive_hour = archive_datetime.hour
+        selected_program = None
+        for program in programs:
 
-        end_hour = program.end_hour
-        if end_hour < program.start_hour:
-            end_hour += 24
+            end_hour = program.end_hour
+            if end_hour < program.start_hour:
+                end_hour += 24
 
-        day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
-        time_match = archive_hour >= program.start_hour and archive_hour < end_hour
-        
-        if day_match and time_match:
-            selected_program = program
-            if archive_hour == (program.end_hour):
-                is_last_hour = True
-            break
-    return selected_program
+            day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
+            time_match = archive_hour >= program.start_hour and archive_hour < end_hour
+            
+            if day_match and time_match:
+                selected_program = program
+                if archive_hour == (program.end_hour):
+                    is_last_hour = True
+                break
+        return selected_program
+    except airtable.airtable.AirtableError:
+        logging.exception('Could not connect with airtable')
+        return None
 
 def upload_to_mixcloud(program: RadioProgram, 
                        file: str, 

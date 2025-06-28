@@ -14,7 +14,6 @@ import waif
 from RadioProgram import RadioProgram
 
 DEBUG = False
-PROGRAM_CSV_FILE = "Shows.csv"
 
 
 if DEBUG:
