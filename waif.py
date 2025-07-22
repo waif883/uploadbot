@@ -26,7 +26,7 @@ def parse_archive_filename(file):
 
     return archive_datetime
 
-def get_programs(secrets):
+def get_programs(secrets: dict) -> list[RadioProgram]:
     # load programs
     # programs = list()
     # reader = csv.DictReader(open(PROGRAM_CSV_FILE))
@@ -66,8 +66,15 @@ def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict)
         if end_hour < program.start_hour:
             end_hour += 24
 
-        day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
-        time_match = archive_hour >= program.start_hour and archive_hour < end_hour
+        if program.start_day_str == program.end_day_str:
+            day_match = (archive_day == program.start_day_str)
+            time_match = archive_hour >= program.start_hour and archive_hour < end_hour
+        else:
+            day_match = (archive_day == program.start_day_str) or (archive_day == program.end_day_str)
+            time_match = False
+            if (archive_day == program.start_day_str and archive_hour >= program.start_hour and archive_hour <= 24) or (archive_day == program.end_day_str and archive_hour < program.end_hour and archive_hour >= 24):
+                time_match = True
+            
         
         if day_match and time_match:
             selected_program = program
