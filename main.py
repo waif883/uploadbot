@@ -12,8 +12,9 @@ import soundfile as sf
 import utils
 import waif 
 from RadioProgram import RadioProgram
+from EggTimer import EggTimer
 
-DEBUG = False
+DEBUG = True
 
 
 if DEBUG:
@@ -52,7 +53,16 @@ def main():
     last_archive_directory_content = glob.glob(os.path.join(ARCHIVE_DIRECTORY, "*"))
     audio_file_upload_queue = list()
     
+    num_seconds_in_a_week = 60 * 60 * 24 * 7
+    program_timer = EggTimer(num_seconds_in_a_week)
+    
+    programs = waif.get_programs(secrets)
+    
     while True:
+        
+        if program_timer.has_elapsed():
+            programs = waif.get_programs(secrets)
+            program_timer.start()
         
         current_archive_directory_content = glob.glob(os.path.join(ARCHIVE_DIRECTORY, "*"))
         
@@ -71,7 +81,7 @@ def main():
             file = item["file"]
             found_at_time = item["time"]
             archive_datetime = waif.parse_archive_filename(file)
-            program = waif.match_archive_to_program(archive_datetime, secrets)
+            program = waif.match_archive_to_program(archive_datetime, secrets, programs)
             
             if program:
                 hours_waited = utils.seconds2hours((datetime.datetime.now() - found_at_time).total_seconds())

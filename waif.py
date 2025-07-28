@@ -52,11 +52,9 @@ def get_programs(secrets: dict) -> list[RadioProgram]:
             programs.append(program)
     return programs
 
-def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict):
+def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict, programs: list):
     
     try:
-        programs = get_programs(secrets)
-    
         # find program 
         program = None
         archive_day = utils.WEEKDAYS[archive_datetime.weekday()]
