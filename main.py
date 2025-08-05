@@ -15,7 +15,7 @@ import waif
 from RadioProgram import RadioProgram
 from EggTimer import EggTimer
 
-DEBUG = True
+DEBUG = False
 
 
 if DEBUG:
