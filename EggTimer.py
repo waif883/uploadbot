@@ -20,3 +20,12 @@ class EggTimer:
             return True
         else:
             return False
+        
+if __name__ == "__main__":
+    et = EggTimer(2)
+    et.start()
+    time_interval = 0.5
+    while not et.has_elapsed():
+        print(et.last_checked_time)
+        time.sleep(time_interval)
+    

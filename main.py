@@ -7,6 +7,7 @@ import csv
 import pprint
 import logging
 import datetime
+import pickle
 import soundfile as sf
 
 import utils
@@ -54,14 +55,30 @@ def main():
     audio_file_upload_queue = list()
     
     num_seconds_in_a_week = 60 * 60 * 24 * 7
-    program_timer = EggTimer(num_seconds_in_a_week)
+    if not DEBUG:
+        program_timer = EggTimer(num_seconds_in_a_week)
+    else:
+        program_timer = EggTimer(2)
+    program_timer.start()
     
     programs = waif.get_programs(secrets)
+    with open("programs.pkl", 'wb') as f:
+        pickle.dump(programs, f, pickle.HIGHEST_PROTOCOL)
     
     while True:
         
         if program_timer.has_elapsed():
-            programs = waif.get_programs(secrets)
+            try:
+                programs = waif.get_programs(secrets)
+                with open("programs.pkl", 'wb') as f:
+                    pickle.dump(programs, f, pickle.HIGHEST_PROTOCOL)
+            except:
+                logging.exception('Could not read from airtable. Trying to load from disk')
+                try:
+                    with open("programs.pkl", 'rb') as f:
+                        programs = pickle.load(f)
+                except:
+                    logging.exception('Could not read from disk. Damn. You are on your own, cowboy.')
             program_timer.start()
         
         current_archive_directory_content = glob.glob(os.path.join(ARCHIVE_DIRECTORY, "*"))
