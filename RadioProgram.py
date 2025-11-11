@@ -36,7 +36,8 @@ class RadioProgram:
         self._get_num_hours()
         
     def _get_day_int(self, day: str):
-        return next(iter([i for i, day_str in utils.WEEKDAYS.items() if day_str == day]))
+        day = day.strip()
+        return next(iter([i for i, day_str in utils.WEEKDAYS.items() if day_str == day]), None)
     
     def _get_num_hours(self):
         start_datetime = utils.find_first_dow(2025, 1, self.start_day_int)
