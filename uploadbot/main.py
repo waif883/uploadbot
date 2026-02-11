@@ -105,7 +105,9 @@ def start_upload_server(
                 if (hours_waited > config["UPLOAD_WAIT_HOURS"]):
                     logging.info(f"{hours_waited} hours have elapsed, ready to upload {file}.")
                     try:
-                        waif.upload_to_mixcloud(program, file, archive_datetime, secrets)
+                        logging.info(f"Preparing to upload {program.name}")
+                        data = waif.create_http_post_data_for_mixcloud(program, archive_datetime)
+                        waif.upload_to_mixcloud(data, file, secrets)
                     except:
                         logging.error(f"Could not upload {file} to mixcloud.")
                     audio_file_upload_queue[i] = None

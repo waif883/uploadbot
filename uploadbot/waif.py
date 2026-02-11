@@ -78,12 +78,10 @@ def match_archive_to_program(archive_datetime: datetime.datetime, secrets: dict,
         return None
     return selected_program
 
-def upload_to_mixcloud(program: RadioProgram, 
-                       file: str, 
-                       archive_datetime: datetime.datetime,
-                       secrets: dict):
-    logging.info(f"Preparing to upload {program.name}")
-
+def create_http_post_data_for_mixcloud(
+    program: RadioProgram,
+    archive_datetime: datetime.datetime
+):
     # upload temp file to Mixcloud
     archive_end_datetime = archive_datetime + datetime.timedelta(hours=1, minutes=0)
     description = (f"{archive_datetime.strftime('%A, %B %d, %Y %I:%M %p')} to {archive_end_datetime.strftime('%A, %B %d, %Y %I:%M %p')}. "
@@ -111,7 +109,13 @@ def upload_to_mixcloud(program: RadioProgram,
     data |= {
         f'tags-{n+1}-tag': f"WAIF: {program.name}"
     }
+    
+    return data
 
+def upload_to_mixcloud(data: dict, 
+                       file: str, 
+                       secrets: dict):
+    
     files = {
         'mp3': (file, open(file, 'rb'), 'audio/mpeg'),
     }
