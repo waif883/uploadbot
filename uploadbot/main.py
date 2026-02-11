@@ -12,6 +12,7 @@ import shutil
 import soundfile as sf
 import time
 
+from ArchiveEntry import ArchiveEntry
 from EggTimer import EggTimer
 from RadioProgram import RadioProgram
 import utils
@@ -60,7 +61,7 @@ def start_upload_server(
         
     # read files on disk
     last_archive_directory_content = ARCHIVE_DIRECTORY.glob("*")
-    audio_file_upload_queue = list()
+    audio_file_upload_queue: list[ArchiveEntry] = []
     
     # start the program timer
     program_timer = EggTimer(config["PROGRAM_TIMER_DURATION_SECONDS"])
@@ -87,35 +88,34 @@ def start_upload_server(
         if new_audio_files:
             logging.info(f"Found new files: \n{pprint.pformat(new_audio_files)}")
         
-        # add new files to the upload queue
-        audio_file_upload_queue += [{
-            "file": file,
-            "time": datetime.datetime.now()
-        } for file in new_audio_files]
-        
-        # for each item in the queue match to a program and upload to mixcloud
-        for i, item in enumerate(audio_file_upload_queue):
-            file = item["file"]
-            found_at_time = item["time"]
-            archive_datetime = waif.parse_archive_filename(file)
-            program = waif.match_archive_to_program(archive_datetime, secrets, programs)
-            
-            if program:
-                hours_waited = utils.seconds2hours((datetime.datetime.now() - found_at_time).total_seconds())
-                if (hours_waited > config["UPLOAD_WAIT_HOURS"]):
-                    logging.info(f"{hours_waited} hours have elapsed, ready to upload {file}.")
-                    try:
-                        logging.info(f"Preparing to upload {program.name}")
-                        data = waif.create_http_post_data_for_mixcloud(program, archive_datetime)
-                        waif.upload_to_mixcloud(data, file, secrets)
-                    except:
-                        logging.error(f"Could not upload {file} to mixcloud.")
-                    audio_file_upload_queue[i] = None
-                else:
-                    logging.info(f"{hours_waited} hours have elapsed, not ready to uplad {file}.")
+        # create entry on the upload queue if file is associated with a program
+        for file in new_audio_files:
+            archive_entry = ArchiveEntry(
+                file=file,
+                creation_time=waif.parse_archive_filename(file),
+                discovery_time=datetime.datetime.now()
+            )
+            archive_entry.program = waif.match_archive_to_program(archive_entry.creation_time, secrets, programs)
+            if archive_entry.program:
+                audio_file_upload_queue.append(archive_entry)
             else:
                 logging.info(f"File \"{file}\" does not match a program. It will not be uploaded.")
+        
+        # for each item in the queue upload to mixcloud
+        for i, archive_entry in enumerate(audio_file_upload_queue):
+            hours_waited = utils.seconds2hours((datetime.datetime.now() - archive_entry.discovery_time).total_seconds())
+            if (hours_waited > config["UPLOAD_WAIT_HOURS"]):
+                logging.info(f"{hours_waited} hours have elapsed, ready to upload {file}.")
+                try:
+                    logging.info(f"Preparing to upload {archive_entry.program.name}")
+                    data = waif.create_http_post_data_for_mixcloud(archive_entry.program, archive_entry.creation_time)
+                    waif.upload_to_mixcloud(data, file, secrets)
+                except:
+                    logging.error(f"Could not upload {file} to mixcloud.")
                 audio_file_upload_queue[i] = None
+            else:
+                logging.info(f"{hours_waited} hours have elapsed, not ready to uplad {file}.")
+
         
         # consolidate queue
         audio_file_upload_queue = [file for file in audio_file_upload_queue if file is not None]
