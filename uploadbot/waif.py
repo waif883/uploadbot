@@ -26,14 +26,7 @@ def parse_archive_filename(file):
 
     return archive_datetime
 
-def get_programs(secrets: dict) -> list[RadioProgram]:
-    # load programs
-    # programs = list()
-    # reader = csv.DictReader(open(PROGRAM_CSV_FILE))
-    # for row in reader:
-    #     programs.append(
-    #         RadioProgram(row)
-    #     )
+def get_programs_from_airtable(secrets: dict) -> list[RadioProgram]:
     programs = list()
     at = airtable.Airtable(secrets["AIRTABLE"]["BASE_ID"], secrets["AIRTABLE"]["ACCESS_TOKEN"])
     
