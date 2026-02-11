@@ -1,19 +1,19 @@
-import os
-import shutil
-import glob
-import time
-import json
 import csv
-import pprint
-import logging
 import datetime
+import glob
+import json
+import logging
+import os
+import pprint
 import pickle
+import shutil
 import soundfile as sf
+import time
 
+from EggTimer import EggTimer
+from RadioProgram import RadioProgram
 import utils
 import waif 
-from RadioProgram import RadioProgram
-from EggTimer import EggTimer
 
 DEBUG = False
 
