@@ -1,0 +1,83 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "WAIF-Upload-Bot"
+authors = [
+    {name = "Julian Vanasse", email = "julian.vanasse@gmail.com"},
+]
+description = "Automating archive uploads to Mixcloud."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "numpy>=1.21.6; python_version<'3.11'",
+    "numpy>=1.23.2; python_version>='3.11'",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "codecov",
+    "pre-commit",
+]
+doc = [
+    "mkdocs",
+    "mkdocstrings",
+    "mkdocstrings[python]",
+    "mkdocs-material",
+    "Pygments",
+]
+dev = [
+    "black",
+    "isort",
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
+all = ["fastvector[test,doc,dev]"]
+
+[tool.setuptools]
+platforms = ["unix", "linux", "osx", "cygwin", "win32"]
+
+[tool.pytest.ini_options]
+minversion = "7.3"
+testpaths = "test"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+omit = [
+    "setup.py",
+    "fastvector/__init__.py",
+    "fastvector/version.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.coverage.html]
+directory = "reports"
